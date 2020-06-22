@@ -6,3 +6,6 @@ logs/
 /target/
 */target/
 .idea/
+*/src/main/resources/secrets/
+/.gradle/
+
