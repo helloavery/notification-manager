@@ -16,9 +16,9 @@ import lombok.Setter;
 public class ProgramArguments {
 
     private String bootstrapAddress;
-    private String mailgunSecretReference;
-    private String mailgunKeyValue;
     private String datasourceHost;
     private int datasourcePort;
     private String auditSchema;
+    private String verificationTemplateId;
+    private String passwordChangeTemplateId;
 }

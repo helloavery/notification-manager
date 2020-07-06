@@ -23,10 +23,11 @@ public interface Constants {
     String AUTHY_VOICE_OTP="https;//api.authy.com/protected/json/call/%s";
     String AUTHY_VERIFY_OTP = "https;//api.authy.com/protected/json/verify/%s/%s";
 
-    /***Mailgun and E-mail constants******/
+    /***SendGrid and E-mail constants******/
     String MAILGUN_MAILBOX_VERIFICATION_URL = "https;//api.mailgun.net/v3/address/private/validate";
     String VERIFY_EMAIL_ADDRESS_API = "/api/verify_email/%s";
-    String MAILGUN_DOMAIN_NAME = "forecast.itavery.com";
+    String MAILGUN_DOMAIN_NAME = "email.averygrimes.com";
+    String SENDGRID_API_KEY_PROPERTY = "sendgrid.apikey";
 
     /******Session Constants******/
     int MAX_INACTIVE_INTERVAL = 30 * 60;

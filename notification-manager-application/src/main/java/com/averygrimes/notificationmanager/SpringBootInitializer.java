@@ -6,7 +6,6 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 
 
 /**
@@ -15,7 +14,7 @@ import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
  * https://github.com/helloavery
  */
 
-@SpringBootApplication(exclude = KafkaAutoConfiguration.class)
+@SpringBootApplication
 public class SpringBootInitializer implements ApplicationRunner {
 
     private static final Logger LOGGER = LogManager.getLogger(SpringBootInitializer.class);

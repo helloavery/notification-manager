@@ -8,4 +8,5 @@ logs/
 .idea/
 */src/main/resources/secrets/
 /.gradle/
-
+*/build/
+*/src/main/generated/

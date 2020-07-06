@@ -20,4 +20,5 @@ public class EmailNotificationRequest implements Serializable {
     private String recipientEmailAddress;
     private String recipientName;
     private String emailToken;
+    private String requestUUID;
 }

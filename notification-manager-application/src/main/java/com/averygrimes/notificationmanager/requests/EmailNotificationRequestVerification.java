@@ -3,6 +3,7 @@ package com.averygrimes.notificationmanager.requests;
 
 import com.averygrimes.notificationmanager.EmailNotificationRequest;
 import com.averygrimes.notificationmanager.exceptions.InvalidEmailNotificationRequestException;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author Avery Grimes-Farrow
@@ -19,14 +20,15 @@ public class EmailNotificationRequestVerification {
         }
         switch (emailNotificationRequest.getEmailNotificationType()){
             case VERIFICATION:
-                if(emailNotificationRequest.getContextURL() != null && emailNotificationRequest.getRecipientEmailAddress() != null
-                    && emailNotificationRequest.getRecipientName() != null && emailNotificationRequest.getEmailToken() != null){
+                if(StringUtils.isNotBlank(emailNotificationRequest.getContextURL()) && StringUtils.isNotBlank(emailNotificationRequest.getRecipientEmailAddress())
+                    && StringUtils.isNotBlank(emailNotificationRequest.getRecipientName()) && StringUtils.isNotBlank(emailNotificationRequest.getEmailToken())
+                && StringUtils.isNotBlank(emailNotificationRequest.getRequestUUID())){
                     isValidRequest = true;
                 }
                 break;
             case PASSWORD_CHANGE:
-                if(emailNotificationRequest.getContextURL() != null && emailNotificationRequest.getRecipientEmailAddress() != null
-                && emailNotificationRequest.getRecipientName() != null){
+                if(StringUtils.isNotBlank(emailNotificationRequest.getContextURL()) && StringUtils.isNotBlank(emailNotificationRequest.getRecipientEmailAddress())
+                && StringUtils.isNotBlank(emailNotificationRequest.getRecipientName()) && StringUtils.isNotBlank(emailNotificationRequest.getRequestUUID())){
                     isValidRequest = true;
                 }
                 break;

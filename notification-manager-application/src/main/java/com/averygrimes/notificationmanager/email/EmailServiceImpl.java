@@ -3,14 +3,19 @@ package com.averygrimes.notificationmanager.email;
 import com.averygrimes.notificationmanager.config.ProgramArguments;
 import com.averygrimes.notificationmanager.exceptions.EmailSenderException;
 import com.averygrimes.notificationmanager.pojo.Constants;
-import net.sargue.mailgun.Configuration;
-import net.sargue.mailgun.Mail;
+import com.sendgrid.Method;
+import com.sendgrid.Request;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Email;
+import com.sendgrid.helpers.mail.objects.Personalization;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.velocity.app.VelocityEngine;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+
 
 /**
  * @author Avery Grimes-Farrow
@@ -22,20 +27,29 @@ import javax.inject.Inject;
 public class EmailServiceImpl implements EmailService {
 
     private static final Logger LOGGER = LogManager.getLogger(EmailServiceImpl.class);
-    private final VelocityEngine velocityEngine;
-    private final ProgramArguments programArguments;
+
+    private ProgramArguments programArguments;
+    private SendGrid sendGridClient;
 
     @Inject
-    public EmailServiceImpl(VelocityEngine velocityEngine, ProgramArguments programArguments) {
-        this.velocityEngine = velocityEngine;
+    public void setProgramArguments(ProgramArguments programArguments) {
         this.programArguments = programArguments;
+    }
+
+    @Inject
+    public void setSendGridClient(SendGrid sendGridClient) {
+        this.sendGridClient = sendGridClient;
     }
 
     @Override
     public boolean sendEmailAddressVerificationEmail(String contextUrl, String emailAddress, String name, String emailToken){
-        String subject = "Please verify your Forecaster E-mail Address";
-        EmailContent emailContent = getVerificationEmail(emailAddress, name, emailToken, contextUrl);
-        if (sendEmail(emailAddress, subject, emailContent)) {
+        String subject = "Please verify your ITAvery E-mail Address";
+        Personalization personalization = new Personalization();
+        personalization.addDynamicTemplateData("subject", subject);
+        personalization.addDynamicTemplateData("VERIFY_EMAIL_LINK", String.format(contextUrl + Constants.VERIFY_EMAIL_ADDRESS_API, emailToken));
+        personalization.addTo(new Email(emailAddress));
+        Mail mailContent = generateMailContent(programArguments.getVerificationTemplateId(), personalization);
+        if (sendEmail(mailContent)) {
             return true;
         } else {
             LOGGER.error("Error sending e-mail");
@@ -46,40 +60,42 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public boolean sendPasswordChangeEmail(String contextUrl, String emailAddress, String name){
         String subject = "Forecaster Password Change";
-        EmailContent emailContent = getPasswordChangeEmail(emailAddress, name);
-        if (!sendEmail(emailAddress, subject, emailContent)) {
+        Personalization personalization = new Personalization();
+        personalization.addDynamicTemplateData("subject", subject);
+        personalization.addTo(new Email(emailAddress));
+        Mail mailContent = generateMailContent(programArguments.getPasswordChangeTemplateId(), personalization);
+        if (!sendEmail(mailContent)) {
             LOGGER.error("Error sending e-mail");
             throw EmailSenderException.buildResponse("Could not send account password change for e-mail: " + emailAddress);
         }
         return true;
     }
 
-    private EmailContent getVerificationEmail(String emailAddress, String name, String emailToken, String contextUrl) {
-        return new AddressVerificationEmail(velocityEngine, name, emailAddress, emailToken, contextUrl);
+    private Mail generateMailContent(String templateId, Personalization personalization){
+        Mail mail = new Mail();
+        mail.setFrom(new Email("Do-Not-Reply <donotreply@averygrimes.com>"));
+        mail.setTemplateId(templateId);
+        mail.addPersonalization(personalization);
+        return mail;
     }
 
-    private EmailContent getPasswordChangeEmail(String emailAddress, String name) {
-        return new PasswordChangeEmail(velocityEngine, name, emailAddress);
-    }
-
-    private boolean sendEmail(String emailAddress, String subject, EmailContent emailContent) {
+    private boolean sendEmail(Mail mailContent) {
         boolean emailEventSuccessful = false;
         try {
-            Configuration configuration = new Configuration()
-                    .domain(Constants.MAILGUN_DOMAIN_NAME)
-                    .apiKey(programArguments.getMailgunKeyValue())
-                    .from("Do-Not-Reply", "donotreply@forecaster.itavery.com");
-            Mail.using(configuration)
-                    .to(emailAddress)
-                    .subject(subject)
-                    .text("Please take appropriate action")
-                    .html(emailContent.getEmailContent())
-                    .build()
-                    .send();
-            LOGGER.info("Successfully sent {} email to {}", subject, emailAddress);
-            emailEventSuccessful = true;
+            Request sendGridRequest = new Request();
+            sendGridRequest.setMethod(Method.POST);
+            sendGridRequest.setEndpoint("mail/send");
+            sendGridRequest.setBody(mailContent.build());
+            sendGridClient.api(sendGridRequest);
+            Response sendGridResponse = sendGridClient.api(sendGridRequest);
+
+            if(sendGridResponse != null){
+                int statusCode = sendGridResponse.getStatusCode();
+                emailEventSuccessful = statusCode >= 200 && statusCode <= 299;
+            }
+            LOGGER.info("Email with subject {} to {} result: {}", mailContent.getSubject(), mailContent.getPersonalization().get(0).getTos(), emailEventSuccessful);
         } catch (Exception e) {
-            LOGGER.error("Error sending e-mail {} to {}", subject, emailAddress);
+            LOGGER.error("Error sending e-mail {} to {}", mailContent.getSubject(), mailContent.getPersonalization().get(0).getTos(), e);
         }
         return emailEventSuccessful;
     }

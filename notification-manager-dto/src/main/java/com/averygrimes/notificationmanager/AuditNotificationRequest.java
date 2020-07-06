@@ -22,4 +22,5 @@ public class AuditNotificationRequest implements Serializable {
     private Timestamp dateActioned;
     private AuditType auditType;
     private String auditDescription;
+    private String requestUUID;
 }

@@ -8,6 +8,6 @@ spring.profiles: dev
 
 secrets:
   keyring: secrets/keyring.txt
-  mailgunKey: secrets/mailgunKeyring.txt
+  sendgridKey: secrets/sendgridKey.txt
 
 ---
